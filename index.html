@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白夜的花路 計算器  </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)), url('1392.jpg');
+            background-repeat: repeat;
+            background-size: 300px;
+            min-height: 100vh;
+            padding-bottom: 420px; 
+        }
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .rate-input::-webkit-outer-spin-button,
+        .rate-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        @media (max-width: 768px) {
+            #item-list > div {
+                background: white;
+                border-radius: 1rem;
+                margin-bottom: 0.75rem;
+                overflow: hidden;
+            }
+
+            .qty-input {
+                width: 56px !important;
+            }
+        }
+    </style>
+</head>
+<div id="image-modal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/80 p-4">    
+    <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-4xl font-light hover:scale-110 transition-transform">×</button>
+    <img id="modal-image" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
+</div>
+<!-- 購物清單 Modal -->
+<div id="list-modal"
+     class="fixed inset-0 z-[999] hidden items-center justify-center bg-black/70 p-4">
+
+    <div class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+            <h2 class="text-xl font-black text-slate-800">
+                🛒 購物清單
+            </h2>
+
+            <button onclick="closeListModal()"
+                class="text-3xl leading-none text-slate-400 hover:text-slate-700 transition-colors">
+                ×
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div id="list-content"
+             class="max-h-[70vh] overflow-y-auto p-5 space-y-4 bg-slate-50">
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-slate-200 bg-white px-5 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-lg font-bold text-slate-500">
+                    總金額
+                </span>
+
+                <span id="list-total"
+                      class="text-2xl font-black text-amber-600">
+                    ₩0
+                </span>
+            </div>
+        </div>
+
+    </div>
+</div>
+<body class="text-slate-800">
+    <button onclick="exportList()" title="生成購物清單" 
+        class="fixed right-6 bottom-44 z-[100] flex h-14 w-14 items-center justify-center rounded-full bg-cyan-600 text-white shadow-2xl shadow-cyan-900/20 transition-all hover:bg-cyan-500 hover:scale-110 active:scale-95 group">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+        <span class="absolute right-full mr-3 hidden rounded bg-slate-800 px-2 py-1 text-xs text-white group-hover:block whitespace-nowrap">
+            生成清單
+        </span>
+    </button>
+    <div class="max-w-4xl mx-auto p-4">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-black text-amber-800 tracking-widest uppercase">𝑩𝒍𝒐𝒔𝒔𝒐𝒎𝒔 𝒐𝒇 𝒕𝒉𝒆 𝑾𝒉𝒊𝒕𝒆 𝑵𝒊𝒈𝒉𝒕</h1>
+            <!--<p class="text-amber-600 font-medium text-sm">Theme MD & 咖啡廳 官方規則計算器</p>-->
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden ring-1 ring-black/5 mb-8">
+            <div id="item-list" class="divide-y divide-slate-100">
+                <script>
+                    const products = [
+                    // Cafe
+                    {
+                        kr: "LEBOM Signature 발로나 바닐라 아포가토",
+                        cn: "[LEBOM] Signature 法芙娜香草阿芙佳朵咖啡",
+                        image: "images/1.png",
+                        price: 6800,
+                        category: "Cafe Drink"
+                    },
+                    {
+                        kr: "White Special 배꽃 에이드",
+                        cn: "White Special 梨花氣泡飲",
+                        image: "images/2.png",
+                        price: 7900,
+                        category: "Cafe Drink"
+                    },
+                    {
+                        kr: "Blossom Special 장미 에이드",
+                        cn: "Blossom Special 玫瑰氣泡飲",
+                        image: "images/3.png",
+                        price: 7900,
+                        category: "Cafe Drink"
+                    },
+                    {
+                        kr: "LEBOM Print Drink 리봄 프린트 드링크",
+                        cn: "LEBOM 印花飲料",
+                        image: "images/4.png",
+                        price: 6900,
+                        category: "Cafe Drink"
+                    },
+                    {
+                        kr: "Fenrir Egg Mousse Cake 펜리르 알 무스 케이크",
+                        cn: "芬裡爾造型慕斯蛋糕",
+                        image: "images/5.png",
+                        price: 9500,
+                        category: "Cafe Dessert"
+                    },
+
+                    // MD
+                    {
+                        kr: "어린이 아크릴 스탠드(슈라카ver./테이ver.)",
+                        cn: "兒童版壓克力立牌(舒拉卡ver./泰ver.)",
+                        image: "images/6.png",
+                        price: 12000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "쉬폰 포스터",
+                        cn: "雪紡海報",
+                        image: "images/7.png",
+                        price: 18000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "포스터",
+                        cn: "海報",
+                        image: "images/8.png",
+                        price: 13000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "슈라카 러그",
+                        cn: "舒拉卡地毯",
+                        image: "images/9.png",
+                        price: 30000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "렌티큘러 카드",
+                        cn: "雙色卡",
+                        image: "images/10.png",
+                        price: 5000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "캔뱃지 세트[성인ver./어린이ver.]",
+                        cn: "徽章組[成人ver./兒童ver.]",
+                        image: "images/11.png",
+                        price: 9000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "백야미니필름패키지",
+                        cn: "白夜迷你膠捲 package",
+                        image: "images/12.png",
+                        price: 7000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "컬렉션 미니 스탠드",
+                        cn: "迷你立牌 collection",
+                        image: "images/13.png",
+                        price: 4200,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "타로팩",
+                        cn: "塔羅組",
+                        image: "images/14.png",
+                        price: 5000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "고블렛잔",
+                        cn: "高腳杯",
+                        image: "images/15.png",
+                        price: 29000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "룸 스프레이",
+                        cn: "室內芳香劑",
+                        price: 30000,
+                        image: "images/16.png",
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "마우스 패드 패키지",
+                        cn: "滑鼠墊",
+                        image: "images/17.png",
+                        price: 30000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "펜리르 리유저블백",
+                        cn: "芬裡爾環保購物袋",
+                        image: "images/18.png",
+                        price: 14000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "펜리르 알 아크릴 키링[롬ver./랍ver.]",
+                        cn: "芬裡爾壓克力鑰匙圈[羅姆ver./拉姆ver.]",
+                        image: "images/19.png",
+                        price: 17500,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "펜리르 키링",
+                        cn: "芬里爾鑰匙圈",
+                        image: "images/20.png",
+                        price: 13500,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "컬렉션 포토카드",
+                        cn: "卡包",
+                        image: "images/21.png",
+                        price: 5000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "아크릴 스탠드",
+                        cn: "壓克力立牌",
+                        image: "images/22.png",
+                        price: 32500,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "캐릭터 키링_봄스윗홈[슈라카ver./테이ver.]",
+                        cn: "BOM sweet HOME角色鑰匙圈",
+                        image: "images/23.png",
+                        price: 11500,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "방 디오라마_봄스윗홈",
+                        cn: "BOM sweet HOME房間立牌",
+                        image: "images/24.png",
+                        price: 19000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "렌티큘러 카드&엽서 세트_봄스윗홈",
+                        cn: "BOM sweet HOME卡片&明信片set",
+                        image: "images/25.png",
+                        price: 9000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "수능 패키지_신학기",
+                        cn: "大學入學考試套組 新學期",
+                        image: "images/26.png",
+                        price: 19000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "과잠 홀더 패키지_신학기",
+                        cn: "校服外套吊飾套組 新學期",
+                        image: "images/27.png",
+                        price: 15000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "대학교 아크릴 스탠드_신학기",
+                        cn: "大學CC壓克力立牌_新學期",
+                        image: "images/28.png",
+                        price: 12000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "리봄 필름 인화사진",
+                        cn: "相卡",
+                        image: "images/29.png",
+                        price: 2000,
+                        category: "Theme MD"
+                    },
+                    {
+                        kr: "리봄 조각 스티커",
+                        cn: "貼紙",
+                        image: "images/30.png",
+                        price: 2000,
+                        category: "Theme MD"
+                    }
+                ];
+
+                    document.write(products.map((p, i) => `
+                        <div class="transition-colors hover:bg-cyan-50/60 border-b border-slate-100">
+                            <div class="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                
+                                <div class="flex items-center gap-4 flex-1 min-w-0">
+                                    <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shrink-0">
+                                        <img src="${p.image || 'images/default.jpg'}" onclick="openImageModal('${p.image || 'images/default.jpg'}')" class="w-full h-full object-cover rounded-xl cursor-zoom-in hover:scale-105 transition-transform duration-300">
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold ${p.category === 'Theme MD' ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-500'}">
+                                                ${p.category}
+                                            </span>
+                                        </div>
+
+                                        <h3 class="font-black text-slate-900 leading-tight text-base md:text-lg break-words">
+                                            ${p.kr || ''}
+                                        </h3>
+
+                                        <p class="text-sm text-slate-500 mt-1 break-words">
+                                            ${p.cn || ''}
+                                        </p>
+
+                                        <p class="text-amber-700 font-black text-lg mt-2">
+                                            ${p.price.toLocaleString()} ₩
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end md:justify-center shrink-0">
+                                    <div class="inline-flex items-center rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+                                        <button
+                                            onclick="changeQty(${i}, -1)"
+                                            class="w-10 h-10 flex items-center justify-center hover:bg-slate-50 transition-colors border-r border-slate-200 text-lg font-bold text-slate-600">
+                                            -
+                                        </button>
+
+                                        <input
+                                            type="number"
+                                            id="qty-${i}"
+                                            value="0"
+                                            min="0"
+                                            data-price="${p.price}"
+                                            class="qty-input w-14 h-10 text-center font-black outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            oninput="calculate()">
+
+                                        <button
+                                            onclick="changeQty(${i}, 1)"
+                                            class="w-10 h-10 flex items-center justify-center hover:bg-slate-50 transition-colors border-l border-slate-200 text-lg font-bold text-slate-600">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join(''));
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-amber-200 shadow-2xl p-4">
+        <div class="max-w-4xl mx-auto space-y-3">
+            
+            <div class="flex gap-2 text-white">
+                <div class="flex-1 bg-slate-900 rounded-xl p-3 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-slate-400">KRW</span>
+                    <span class="text-xl font-black text-amber-400"><span id="krw-total">0</span> ₩</span>
+                </div>
+                <div class="flex-1 bg-amber-800 rounded-xl p-3 flex justify-between items-center text-white">
+                    <div class="flex items-center gap-1">
+                        <span class="text-[10px] font-bold text-white">NTD</span>
+                        <input type="number" id="exchange-rate" value="0.0232" step="0.0001" 
+                            class="rate-input w-10 text-right bg-transparent text-[10px] border-b border-dotted border-amber-400/50 font-bold text-amber-200 outline-none" 
+                            oninput="calculate()">
+                    </div>
+                    
+                    <span class="text-xl font-black">
+                        <span class="text-sm font-normal mr-1">NT$</span><span id="twd-total">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-amber-900">🎁 滿額特典 (每人上限2張)</span>
+                    <span id="md-status" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-700">未達標</span>
+                </div>
+                <div class="w-full bg-amber-200 rounded-full h-2 mb-2">
+                    <div id="md-progress" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs font-bold text-slate-600">
+                    <span>獲得小卡：<span id="md-bonus-count" class="text-amber-600 text-lg">0</span> 張</span>
+                    <span>(MD總計: <span id="md-only-total">0</span> ₩)</span>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <div class="flex justify-between text-xs font-bold mb-2">
+                    <span class="text-blue-900">☕ 咖啡廳特典</span>
+                    <span class="text-blue-400">入場迎賓卡：1 張</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-[11px] font-bold text-slate-600">
+                    <div>飲品小卡：<span id="drink-bonus" class="text-blue-600 text-base">0</span> 張</div>
+                    <div>甜點立牌組：<span id="dessert-bonus" class="text-blue-600 text-base">0</span> 組</div>
+                </div>
+                <div id="limit-warning" class="hidden mt-2 text-[10px] font-bold text-rose-600 bg-rose-100 p-1 rounded text-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function changeQty(index, delta) {
+            const input = document.getElementById(`qty-${index}`);
+            input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+            calculate();
+        }
+        function calculate() {
+            let totalKRW = 0;
+            let mdTotal = 0;
+            let drinkQty = 0;
+            let dessertQty = 0;
+
+            products.forEach((p, i) => {
+                const qty = parseInt(document.getElementById(`qty-${i}`).value) || 0;
+                totalKRW += qty * p.price;
+                if (p.category === "Theme MD") mdTotal += qty * p.price;
+                if (p.category === "Cafe Drink") drinkQty += qty;
+                if (p.category === "Cafe Dessert") dessertQty += qty;
+            });
+
+            // 更新金額
+            document.getElementById('krw-total').textContent = totalKRW.toLocaleString();
+            document.getElementById('twd-total').textContent = Math.round(totalKRW * 0.024).toLocaleString();
+            document.getElementById('md-only-total').textContent = mdTotal.toLocaleString();
+
+            // MD 特典邏輯 (修正為階梯式：5萬/1張，10萬/2張上限)
+            const mdCards = Math.floor(mdTotal / 50000);
+
+            const remain = 50000 - (mdTotal % 50000);
+
+            const progress = ((mdTotal % 50000) / 50000) * 100;
+
+            let status = "";
+
+            if (mdTotal < 50000) {
+
+                status =
+                    "再 ₩" +
+                    remain.toLocaleString() +
+                    " 送第 1 張";
+
+            } else {
+
+                status =
+                    `已獲得 ${mdCards} 張 · 再 ₩${remain.toLocaleString()} 送第 ${mdCards + 1} 張`;
+            }
+
+            document.getElementById('md-bonus-count').textContent = mdCards;
+
+            document.getElementById('md-progress').style.width = progress + "%";
+
+            document.getElementById('md-status').textContent = status;
+
+            // 咖啡廳特典
+            document.getElementById('drink-bonus').textContent = drinkQty;
+            document.getElementById('dessert-bonus').textContent = dessertQty;
+
+            // 限制警告
+            const warn = document.getElementById('limit-warning');
+            let msg = [];
+            if (drinkQty > 2) msg.push("飲品超標(限2)");
+            if (dessertQty > 1) msg.push("甜點超標(限1)");
+            
+            if (msg.length > 0) {
+                warn.textContent = "⚠️ 注意：" + msg.join("、") + "，以上為多人累計計算。";
+                warn.classList.remove('hidden');
+            } else {
+                warn.classList.add('hidden');
+            }
+        }
+        function openImageModal(src) {
+            document.getElementById('modal-image').src = src;
+            document.getElementById('image-modal').classList.remove('hidden');
+            document.getElementById('image-modal').classList.add('flex');
+        }
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+            document.getElementById('image-modal').classList.remove('flex');
+        }
+        function closeListModal() {
+            document.getElementById('list-modal').classList.add('hidden');
+            document.getElementById('list-modal').classList.remove('flex');
+        }
+        function exportList() {
+
+            let itemRows = '';
+
+            let total = 0;
+
+            products.forEach((p, i) => {
+
+                const qty = parseInt(document.getElementById(`qty-${i}`).value) || 0;
+
+                if (qty > 0) {
+
+                    const subtotal = qty * p.price;
+                    total += subtotal;
+
+                    itemRows += `
+                        <tr>
+                            <td style="padding:10px 4px;">
+                                <img 
+                                    src="${p.image || 'images/default.jpg'}"
+                                    style="
+                                        width:50px;
+                                        height:50px;
+                                        object-fit:cover;
+                                        border-radius:10px;
+                                        border:1px solid #e2e8f0;
+                                    ">
+                            </td>
+
+                            <td style="padding:10px 8px; vertical-align:top;">
+                                <div style="font-weight:700; color:#0f172a;">
+                                    ${p.kr || ''}
+                                </div>
+
+                                <div style="
+                                    font-size:12px;
+                                    color:#64748b;
+                                    margin-top:4px;
+                                    line-height:1.4;
+                                ">
+                                    ${p.cn || ''}
+                                </div>
+                            </td>
+
+                            <td style="
+                                text-align:center;
+                                font-weight:700;
+                            ">
+                                ${qty}
+                            </td>
+
+                            <td style="
+                                text-align:right;
+                                font-weight:700;
+                                color:#b45309;
+                            ">
+                                ₩${subtotal.toLocaleString()}
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (itemRows === '') {
+
+                alert('尚未選擇商品');
+                return;
+            }
+
+            const twdTotal = Math.round(total * 0.024);
+
+            const bonus5w = Math.floor(total / 50000);
+            const bonus10w = Math.floor(total / 100000);
+
+            const printWindow = window.open('', '_blank');
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Spaklz 2026 購物清單</title>
+
+                    <style>
+
+                        body {
+                            font-family:
+                                -apple-system,
+                                BlinkMacSystemFont,
+                                "Segoe UI",
+                                sans-serif;
+
+                            margin: 0;
+                            padding: 12px;
+                            background: #f1f5f9;
+
+                            display: flex;
+                            justify-content: center;
+                        }
+
+                        .receipt {
+                            width: 100%;
+                            max-width: 700px;
+
+                            background: white;
+
+                            border-radius: 20px;
+
+                            padding: 20px;
+
+                            box-shadow:
+                                0 10px 25px rgba(0,0,0,0.08);
+
+                            box-sizing: border-box;
+                        }
+
+                        h1 {
+                            text-align: center;
+
+                            font-size: 22px;
+
+                            margin-bottom: 24px;
+
+                            letter-spacing: 2px;
+
+                            color: #0f172a;
+
+                            border-bottom: 2px solid #0f172a;
+
+                            padding-bottom: 12px;
+                        }
+
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        thead {
+                            background: #f8fafc;
+                        }
+
+                        th {
+                            padding: 12px 8px;
+
+                            font-size: 13px;
+
+                            color: #64748b;
+
+                            border-bottom: 1px solid #e2e8f0;
+                        }
+
+                        td {
+                            border-bottom: 1px solid #f1f5f9;
+                        }
+
+                        .total-box {
+
+                            margin-top: 24px;
+
+                            background: #f8fafc;
+
+                            border-radius: 16px;
+
+                            padding: 18px;
+
+                            border: 1px solid #e2e8f0;
+                        }
+
+                        .bonus {
+
+                            margin-top: 18px;
+
+                            padding: 14px;
+
+                            background: #fff1f2;
+
+                            border-left: 4px solid #fb7185;
+
+                            border-radius: 12px;
+
+                            color: #881337;
+
+                            font-size: 14px;
+
+                            line-height: 1.7;
+                        }
+
+                        .footer {
+                            margin-top: 20px;
+
+                            text-align: center;
+
+                            font-size: 11px;
+
+                            color: #94a3b8;
+                        }
+
+                        @media print {
+
+                            body {
+                                background: white;
+                                padding: 0;
+                            }
+
+                            .receipt {
+                                box-shadow: none;
+                                border-radius: 0;
+                                max-width: none;
+                            }
+                        }
+
+                    </style>
+                </head>
+
+                <body>
+
+                    <div class="receipt">
+
+                        <h1>SPAKLZ 2026 TOUR</h1>
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th style="width:60px;"></th>
+                                    <th style="text-align:left;">商品項目</th>
+                                    <th style="width:60px;">數量</th>
+                                    <th style="width:120px; text-align:right;">小計</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                ${itemRows}
+                            </tbody>
+
+                        </table>
+
+                        <div class="total-box">
+
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                font-size:18px;
+                                font-weight:700;
+                            ">
+                                <span>總計 (KRW)</span>
+                                <span>₩${total.toLocaleString()}</span>
+                            </div>
+
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                margin-top:8px;
+                                color:#4338ca;
+                                font-weight:700;
+                            ">
+                                <span>預估 (TWD)</span>
+                                <span>NT$ ${twdTotal.toLocaleString()}</span>
+                            </div>
+
+                        </div>
+
+                        <div class="bonus">
+
+                            <div style="
+                                font-weight:700;
+                                margin-bottom:6px;
+                            ">
+                                🎁 特典計算結果
+                            </div>
+
+                            <div>• 5W 滿額特典：${bonus5w} 份</div>
+
+                            <div>• 10W 滿額特典：${bonus10w} 份</div>
+
+                        </div>
+
+                        <div class="footer">
+                            Generated at ${new Date().toLocaleString()}
+                        </div>
+
+                    </div>
+
+                </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+        }
+    </script>
+</body>
+</html>
